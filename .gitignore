@@ -83,3 +83,10 @@ Plugins/*/RiderLink/*
 DerivedDataCache/*
 
 .idea/.idea.MGNGDectectives/.idea/workspace.xml
+
+#Mac OS X
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*

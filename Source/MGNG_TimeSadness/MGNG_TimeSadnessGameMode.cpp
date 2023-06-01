@@ -8,7 +8,7 @@ AMGNG_TimeSadnessGameMode::AMGNG_TimeSadnessGameMode()
 	: Super()
 {
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/ThirdPerson/Blueprints/BP_ThirdPersonCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnClassFinder(TEXT("/Game/ThirdPerson/BP_TPCHaracter"));
 	DefaultPawnClass = PlayerPawnClassFinder.Class;
 
 }

@@ -34,6 +34,11 @@ class AMGNG_TimeSadnessNPC : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* WallJumpAction;
 
+	/** Slide Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SlideAction;
+
+
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
@@ -41,15 +46,22 @@ class AMGNG_TimeSadnessNPC : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+	
+	UCharacterMovementComponent* CharMove;
 
 public:
 	AMGNG_TimeSadnessNPC();
 
 	bool bIsWall;
+	bool bCanRoll;
+	bool bSafeLand;
+	bool bIsSliding;
+	
 	FVector DirectionToJump;
 	FRotator DirectionToLook;
 	UPROPERTY(EditAnywhere)
 	float Magnitude;
+	float Counter;
 protected:
 
 	/** Called for movement input */
@@ -59,6 +71,10 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	void WallJump();
+
+	void Slide();
+	
+	void ResetBools();
 	
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

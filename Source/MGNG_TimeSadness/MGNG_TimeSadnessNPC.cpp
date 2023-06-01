@@ -77,7 +77,9 @@ void AMGNG_TimeSadnessNPC::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 	if(!CharMove->IsFalling() && bCanRoll && bSafeLand)
 	{
-		ResetBools();
+		Counter += DeltaSeconds;
+		if(Counter > 1.17f)
+			ResetBools();
 		return;
 	}
 	//Condición para morir
@@ -89,15 +91,28 @@ void AMGNG_TimeSadnessNPC::Tick(float DeltaSeconds)
 	}
 	if(!CharMove->IsFalling())
 	{
-		if(!bIsSliding)
-			return;
-		if(Counter > 0.5f)
+		if(bIsSliding)
+		{
+			CharMove->MaxWalkSpeed = 1000;
+			CharMove->Velocity = GetCapsuleComponent()->GetForwardVector() * 1000.f;
+			Counter += DeltaSeconds;
+		}
+		if(Counter > 1.17f && bIsSliding)
 		{
 			bIsSliding = false;
 			GetCapsuleComponent()->SetCapsuleHalfHeight(96.f);
+			USkeletalMeshComponent* MeshComp = GetMesh();
+			UCapsuleComponent* Caps = GetCapsuleComponent();
+
+			CharMove->MaxWalkSpeed = 700.f;
+			float xLocation = Caps->GetComponentLocation().X;
+			float yLocation = Caps->GetComponentLocation().Y;
+			float zLocation = Caps->GetComponentLocation().Z;
+			
+			MeshComp->SetRelativeLocation(FVector(0,0,MeshComp->GetRelativeLocation().Z - 50.0f));
+			Caps->SetWorldLocation(FVector(xLocation,yLocation,zLocation + 50.0f));
 			return;
 		}
-		Counter += DeltaSeconds;
 	}
 	if(CharMove->Velocity.Z < -900)
 	{
@@ -115,7 +130,7 @@ void AMGNG_TimeSadnessNPC::SetupPlayerInputComponent(class UInputComponent* Play
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 		
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMGNG_TimeSadnessNPC::CheckJump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		//Moving
@@ -137,7 +152,7 @@ void AMGNG_TimeSadnessNPC::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-	if (Controller != nullptr)
+	if (Controller != nullptr && !bIsSliding)
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -179,16 +194,37 @@ void AMGNG_TimeSadnessNPC::WallJump()
 
 	if(bCanRoll)
 	{
+		Counter = 0;
 		bSafeLand = true;
+	}
+}
+
+void AMGNG_TimeSadnessNPC::CheckJump()
+{
+	if(!bIsSliding)
+	{
+		Cast<ACharacter>(this)->Jump();
 	}
 }
 
 void AMGNG_TimeSadnessNPC::Slide()
 {
-	GetCapsuleComponent()->SetCapsuleHalfHeight(42.f);
-	Counter = 0;
-	bIsSliding = true;
-	CharMove->AddImpulse(GetCapsuleComponent()->GetForwardVector() * 60000.0f);
+	if(!bIsSliding)
+	{
+		USkeletalMeshComponent* MeshComp = GetMesh();
+	
+		UCapsuleComponent* caps = GetCapsuleComponent();
+	
+		float xLocation = caps->GetComponentLocation().X;
+		float yLocation = caps->GetComponentLocation().Y;
+		float zLocation = caps->GetComponentLocation().Z;
+	
+		GetCapsuleComponent()->SetCapsuleHalfHeight(42.f);
+		MeshComp->SetRelativeLocation(FVector(0,0,MeshComp->GetRelativeLocation().Z + 50.0f));
+		GetCapsuleComponent()->SetWorldLocation(FVector(xLocation,yLocation,zLocation - 50.0f));
+		Counter = 0;
+		bIsSliding = true;
+	}
 }
 
 void AMGNG_TimeSadnessNPC::ResetBools()

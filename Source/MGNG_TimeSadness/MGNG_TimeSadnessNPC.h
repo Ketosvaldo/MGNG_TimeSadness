@@ -53,7 +53,9 @@ public:
 
 	bool bIsWall;
 	bool bCanRoll;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bSafeLand;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsSliding;
 	
 	FVector DirectionToJump;
@@ -71,6 +73,8 @@ protected:
 
 	void WallJump();
 
+	void CheckJump();
+	
 	void Slide();
 	
 	void ResetBools();

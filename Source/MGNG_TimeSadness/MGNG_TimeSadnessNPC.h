@@ -59,6 +59,7 @@ public:
 	bool bSafeLand;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsSliding;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsRag;
 	
 	FVector DirectionToJump;

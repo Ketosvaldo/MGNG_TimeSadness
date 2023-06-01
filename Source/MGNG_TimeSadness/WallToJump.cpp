@@ -44,6 +44,7 @@ void AWallToJump::OverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor*
 		CharMove->GravityScale = 0;
 		CharMove->Velocity = FVector(CharMove->Velocity.X,CharMove->Velocity.Y,-velocityZ);
 		Character->bIsWall = true;
+		Character->bIsWallJumping = false;
 		Character->DirectionToJump = ArrowComponent->GetComponentRotation().Vector();
 		Character->DirectionToJump.Normalize();
 	}

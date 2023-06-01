@@ -50,19 +50,23 @@ class AMGNG_TimeSadnessNPC : public ACharacter
 
 public:
 	AMGNG_TimeSadnessNPC();
-
+	
 	bool bIsWall;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	bool bIsWallJumping;
 	bool bCanRoll;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bSafeLand;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	bool bIsSliding;
+	bool bIsRag;
 	
 	FVector DirectionToJump;
 	FRotator DirectionToLook;
 	UPROPERTY(EditAnywhere)
 	float Magnitude;
 	float Counter;
+	float JumpCounter;
 protected:
 
 	/** Called for movement input */

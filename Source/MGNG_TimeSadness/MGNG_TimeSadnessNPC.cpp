@@ -55,6 +55,7 @@ AMGNG_TimeSadnessNPC::AMGNG_TimeSadnessNPC()
 	CharMove = GetCharacterMovement();
 	Magnitude = 1;
 	Counter = 0;
+	JumpCounter = 0;
 }
 
 void AMGNG_TimeSadnessNPC::BeginPlay()
@@ -75,9 +76,16 @@ void AMGNG_TimeSadnessNPC::BeginPlay()
 void AMGNG_TimeSadnessNPC::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if(bIsRag)
+		return;
+	JumpCounter += DeltaSeconds;
 	if(!CharMove->IsFalling() && bCanRoll && bSafeLand)
 	{
 		Counter += DeltaSeconds;
+		/*if(JumpCounter > 0.4f)
+			GetCharacterMovement()->AddImpulse(DirectionToJump * Magnitude);*/
+		if(Counter > 0.88f)
+			bIsWallJumping = false;
 		if(Counter > 1.17f)
 			ResetBools();
 		return;
@@ -87,10 +95,12 @@ void AMGNG_TimeSadnessNPC::Tick(float DeltaSeconds)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString(TEXT("Me muero")));
 		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true);
+		bIsRag = true;
 		return;
 	}
 	if(!CharMove->IsFalling())
 	{
+		bIsWallJumping = false;
 		if(bIsSliding)
 		{
 			CharMove->MaxWalkSpeed = 1000;
@@ -190,6 +200,8 @@ void AMGNG_TimeSadnessNPC::WallJump()
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString(TEXT("Si funciona")));
 		GetCharacterMovement()->AddImpulse(DirectionToJump * Magnitude);
 		SetActorRotation(FRotator(GetActorRotation().Pitch,GetActorRotation().Yaw + 180,GetActorRotation().Roll));
+		bIsWallJumping = true;
+		JumpCounter = 0;
 	}
 
 	if(bCanRoll)
@@ -209,7 +221,7 @@ void AMGNG_TimeSadnessNPC::CheckJump()
 
 void AMGNG_TimeSadnessNPC::Slide()
 {
-	if(!bIsSliding)
+	if(!bIsSliding && !CharMove->IsFalling())
 	{
 		USkeletalMeshComponent* MeshComp = GetMesh();
 	

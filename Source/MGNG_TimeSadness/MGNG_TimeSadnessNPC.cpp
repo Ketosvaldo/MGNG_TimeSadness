@@ -18,7 +18,7 @@ AMGNG_TimeSadnessNPC::AMGNG_TimeSadnessNPC()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+	
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -48,8 +48,13 @@ AMGNG_TimeSadnessNPC::AMGNG_TimeSadnessNPC()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	bIsWall = false;
-
+	bCanRoll = false;
+	bSafeLand = false;
+	bIsSliding = false;
+	
+	CharMove = GetCharacterMovement();
 	Magnitude = 1;
+	Counter = 0;
 }
 
 void AMGNG_TimeSadnessNPC::BeginPlay()
@@ -70,6 +75,35 @@ void AMGNG_TimeSadnessNPC::BeginPlay()
 void AMGNG_TimeSadnessNPC::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if(!CharMove->IsFalling() && bCanRoll && bSafeLand)
+	{
+		ResetBools();
+		return;
+	}
+	//Condición para morir
+	if(!CharMove->IsFalling() && bCanRoll && !bSafeLand)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString(TEXT("Me muero")));
+		GetMesh()->SetAllBodiesBelowSimulatePhysics(FName("pelvis"), true);
+		return;
+	}
+	if(!CharMove->IsFalling())
+	{
+		if(!bIsSliding)
+			return;
+		if(Counter > 0.5f)
+		{
+			bIsSliding = false;
+			GetCapsuleComponent()->SetCapsuleHalfHeight(96.f);
+			return;
+		}
+		Counter += DeltaSeconds;
+	}
+	if(CharMove->Velocity.Z < -900)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString(TEXT("Ruedo")));
+		bCanRoll = true;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -90,8 +124,11 @@ void AMGNG_TimeSadnessNPC::SetupPlayerInputComponent(class UInputComponent* Play
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMGNG_TimeSadnessNPC::Look);
 
+		//WallJump
 		EnhancedInputComponent->BindAction(WallJumpAction, ETriggerEvent::Started, this, &AMGNG_TimeSadnessNPC::WallJump);
 
+		//Slide
+		EnhancedInputComponent->BindAction(SlideAction, ETriggerEvent::Started, this, &AMGNG_TimeSadnessNPC::Slide);
 	}
 
 }
@@ -139,4 +176,23 @@ void AMGNG_TimeSadnessNPC::WallJump()
 		GetCharacterMovement()->AddImpulse(DirectionToJump * Magnitude);
 		SetActorRotation(FRotator(GetActorRotation().Pitch,GetActorRotation().Yaw + 180,GetActorRotation().Roll));
 	}
+
+	if(bCanRoll)
+	{
+		bSafeLand = true;
+	}
+}
+
+void AMGNG_TimeSadnessNPC::Slide()
+{
+	GetCapsuleComponent()->SetCapsuleHalfHeight(42.f);
+	Counter = 0;
+	bIsSliding = true;
+	CharMove->AddImpulse(GetCapsuleComponent()->GetForwardVector() * 60000.0f);
+}
+
+void AMGNG_TimeSadnessNPC::ResetBools()
+{
+	bCanRoll = false;
+	bSafeLand = false;
 }

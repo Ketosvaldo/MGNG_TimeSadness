@@ -46,6 +46,10 @@ AMGNG_TimeSadnessNPC::AMGNG_TimeSadnessNPC()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	bIsWall = false;
+
+	Magnitude = 1;
 }
 
 void AMGNG_TimeSadnessNPC::BeginPlay()
@@ -86,6 +90,8 @@ void AMGNG_TimeSadnessNPC::SetupPlayerInputComponent(class UInputComponent* Play
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMGNG_TimeSadnessNPC::Look);
 
+		EnhancedInputComponent->BindAction(WallJumpAction, ETriggerEvent::Started, this, &AMGNG_TimeSadnessNPC::WallJump);
+
 	}
 
 }
@@ -122,5 +128,15 @@ void AMGNG_TimeSadnessNPC::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AMGNG_TimeSadnessNPC::WallJump()
+{
+	if(bIsWall)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString(TEXT("Si funciona")));
+		GetCharacterMovement()->AddImpulse(DirectionToJump * Magnitude);
+		SetActorRotation(FRotator(GetActorRotation().Pitch,GetActorRotation().Yaw + 180,GetActorRotation().Roll));
 	}
 }
